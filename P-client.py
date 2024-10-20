@@ -92,7 +92,7 @@ def bluetooth_client(server_mac_address):
         client_sock.close()
         sys.exit(0)
 
-# 查找对应名称蓝牙设备并获取 MAC 地址，需要将对应c++文件转化为dll文件并导入运行。
+# 查找对应名称蓝牙设备并获取 MAC 地址，需要将目录下blue_scan.cpp文件通过visual studio转化为dll文件并将文件路径填入下方位置。
 def find_device_mac(target_name):
     # DLL 文件的路径
     dll_path = r'C:\...\Project1\x64\Release\Project1.dll'
