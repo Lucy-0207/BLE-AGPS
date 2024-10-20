@@ -1,3 +1,5 @@
+import ctypes
+import os
 import bluetooth
 import hashlib
 import json
@@ -90,7 +92,61 @@ def bluetooth_client(server_mac_address):
         client_sock.close()
         sys.exit(0)
 
+# 查找对应名称蓝牙设备并获取 MAC 地址，需要将对应c++文件转化为dll文件并导入运行。
+def find_device_mac(target_name):
+    # DLL 文件的路径
+    dll_path = r'C:\Users\灰0831\source\repos\Project1\x64\Release\Project1.dll'
+
+    # 检查 DLL 是否存在
+    if os.path.exists(dll_path):
+        # 加载 DLL 文件
+        my_dll = ctypes.CDLL(dll_path)
+
+        # 定义 scanDevices 函数的返回类型和参数类型
+        scanDevices = my_dll.scanDevices
+        scanDevices.restype = ctypes.c_char_p  # 返回类型是字符串（const char*）
+        scanDevices.argtypes = []  # 无参数
+
+        # 调用 DLL 函数并获取返回值
+        result = scanDevices().decode('mbcs')  # 使用 'mbcs' 解码字符串
+
+        # 打印蓝牙设备的扫描结果
+        print("All scanned devices:\n", result)
+
+        # 查找名为 'DESKTOP-9B8BHMS' 的设备并输出其 MAC 地址
+        devices = result.split('\n')  # 按行拆分设备信息
+
+        for device in devices:
+            if target_name in device:
+                # 假设设备信息的格式是："[Name]: DESKTOP-9B8BHMS [Address]: 00:11:22:33:44:55"
+                parts = device.split()
+                for i, part in enumerate(parts):
+                    if part == "[Address]:":
+                        mac_address = parts[i + 1]
+                        print(f"Device '{target_name}' found with MAC address: {mac_address}")
+                        return mac_address
+
+        print(f"Device '{target_name}' not found.")
+        return None
+
+    else:
+        print(f"DLL not found at {dll_path}")
+        return None
+
 if __name__ == '__main__':
+    # 查找目标设备的MAC地址
+    target_device_name = "DESKTOP-9B8BHMS"
+    server_mac_address = find_device_mac(target_device_name)
+
+    if server_mac_address:
+        # 如果找到设备，启动蓝牙客户端
+        bluetooth_client(server_mac_address)
+    else:
+        print("未找到目标设备，程序退出。")
+
+# 未修改前直接传入对应设备mac地址的方式
+# if __name__ == '__main__':
     # 替换为服务器设备的MAC地址
-    server_mac_address = "70:A8:D3:8F:43:B3"  # 修改为实际的MAC地址
-    bluetooth_client(server_mac_address)
+    # server_mac_address = "70:A8:D3:8F:43:B3"  # 修改为实际的MAC地址
+    # bluetooth_client(server_mac_address)
+
