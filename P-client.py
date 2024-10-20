@@ -95,7 +95,7 @@ def bluetooth_client(server_mac_address):
 # 查找对应名称蓝牙设备并获取 MAC 地址，需要将对应c++文件转化为dll文件并导入运行。
 def find_device_mac(target_name):
     # DLL 文件的路径
-    dll_path = r'C:\Users\灰0831\source\repos\Project1\x64\Release\Project1.dll'
+    dll_path = r'C:\...\Project1\x64\Release\Project1.dll'
 
     # 检查 DLL 是否存在
     if os.path.exists(dll_path):
