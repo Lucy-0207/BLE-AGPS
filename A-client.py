@@ -101,8 +101,11 @@ def bluetooth_client(server_mac_address):
         token_g = alice.decrypt(shared_key, encrypted_token_g).decode('utf-8')
         print(f"收到服务器token G: {token_g}")
 
-        # 使用 token G 和计数器生成并发送消息B
-        message_b = f"{token_g}, count=2"
+        # 获取自己的AGPS数据
+        agps_data = (34.0500, -118.2425)  # 示例：客户端的AGPS坐标
+
+        # 使用 token G 和计数器生成并发送消息B，agps数据也包含在内
+        message_b = f"{token_g}; count=2 ; agps_data={agps_data}"
         encrypted_message_b = alice.encrypt(shared_key, message_b.encode('utf-8'))
         client_sock.send(encrypted_message_b)
         print(f"发送加密消息B: {encrypted_message_b}")
@@ -118,5 +121,5 @@ def bluetooth_client(server_mac_address):
         client_sock.close()
 
 if __name__ == '__main__':
-    server_mac_address = "38:7A:0E:D4:5A:B1"  # 修改为服务器的 MAC 地址
+    server_mac_address = "70:A8:D3:8F:43:B3"  # 修改为服务器的 MAC 地址
     bluetooth_client(server_mac_address)
