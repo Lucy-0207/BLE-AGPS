@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from secrets import token_bytes
+import math
 
 class DiffieHellman:
     def __init__(self):
@@ -57,6 +58,18 @@ class DiffieHellman:
         unpadder = padding.PKCS7(128).unpadder()
         return unpadder.update(decrypted_data) + unpadder.finalize()
 
+def haversine(lon1, lat1, lon2, lat2):
+    R = 6371  # 地球半径，单位：公里
+    dlon = math.radians(lon2 - lon1)
+    dlat = math.radians(lat2 - lat1)
+
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+
 def bluetooth_server():
     server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
     server_sock.bind(("", 4))
@@ -100,23 +113,55 @@ def bluetooth_server():
         client_sock.send(encrypted_token_g)
         print(f"发送token G: {encrypted_token_g}")
 
+        # 获取自己的agps数据
+        own_agps_data = (34.0522, -118.2437)  # 示例：此为服务器的AGPS坐标
+
         # 接收并解密客户端的消息B
         encrypted_message_b = client_sock.recv(1024)
         decrypted_message_b = bob.decrypt(shared_key, encrypted_message_b)
-        print(f"收到客户端消息B: {decrypted_message_b.decode('utf-8')}")
+        decrypted_message_str = decrypted_message_b.decode('utf-8')
+        print(f"收到客户端消息B: {decrypted_message_str}")
 
-        # 验证客户端的 tokenG 和 count
-        if "tokenG" in decrypted_message_b.decode('utf-8'):
-            print("客户端消息验证成功")
-            final_confirmation = "认证完成"
-        else:
-            print("客户端消息验证失败")
+        # 确保消息格式正确再进行解析
+        try:
+            # 提取 token G 和 AGPS 数据
+            parts = decrypted_message_str.split(";")
+            token_g_received = parts[0]  # 提取 token G
+            # 输出tokenG
+            print(f"收到token G: {token_g_received}")
+            count = int(parts[1].split('=')[1])  # 提取计数器
+            # 输出计数器
+            print(f"收到计数器: {count}")
+            agps_data_str = parts[2].split('=')[1]  # 提取 AGPS 数据部分
+            # 输出AGPS数据
+            print(f"收到AGPS数据: {agps_data_str}")
+
+            # 将 AGPS 数据字符串转换为元组
+            client_agps_data = tuple(map(float, agps_data_str.strip("()").split(",")))
+            print(f"客户端AGPS数据: {client_agps_data}")
+
+            # 计算距离
+            distance = haversine(own_agps_data[1], own_agps_data[0], client_agps_data[1], client_agps_data[0])
+            print(f"车辆与钥匙扣之间的距离: {distance:.2f} 千米")
+
+            # 验证客户端的 tokenG 和距离
+            if token_g_received == "tokenG" and distance <= 0.03:  # 假设有效距离为30米
+                print("客户端消息验证成功，认证完成")
+                final_confirmation = "认证完成"
+            else:
+                print("客户端消息验证失败或距离超出范围")
+                final_confirmation = "认证失败"
+
+        except (IndexError, ValueError) as e:
+            print("消息格式不正确，无法解析AGPS数据。", e)
             final_confirmation = "认证失败"
 
         # 发送最终确认消息
         encrypted_final_confirmation = bob.encrypt(shared_key, final_confirmation.encode('utf-8'))
         client_sock.send(encrypted_final_confirmation)
         print(f"发送最终确认: {encrypted_final_confirmation}")
+
+
 
     except bluetooth.BluetoothError as e:
         print(f"蓝牙连接失败: {e}")
