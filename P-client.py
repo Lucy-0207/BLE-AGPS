@@ -86,8 +86,9 @@ def bluetooth_client(server_mac_address):
 
     except bluetooth.BluetoothError as e:
         print(f"蓝牙连接失败: {e}")
-    except OSError:
-        print("连接已关闭或出错。")
+    except OSError as e:
+        print(f"连接已关闭或出错: {e}")
+
     finally:
         client_sock.close()
         sys.exit(0)
@@ -133,6 +134,7 @@ def find_device_mac(target_name):
         print(f"DLL not found at {dll_path}")
         return None
 
+"""
 if __name__ == '__main__':
     # 查找目标设备的MAC地址
     target_device_name = "DESKTOP-9B8BHMS"
@@ -143,10 +145,12 @@ if __name__ == '__main__':
         bluetooth_client(server_mac_address)
     else:
         print("未找到目标设备，程序退出。")
-
+"""
 # 未修改前直接传入对应设备mac地址的方式
-# if __name__ == '__main__':
+if __name__ == '__main__':
     # 替换为服务器设备的MAC地址
-    # server_mac_address = "70:A8:D3:8F:43:B3"  # 修改为实际的MAC地址
-    # bluetooth_client(server_mac_address)
+    server_mac_address = "80:C8:AC:00:00:06" 
+    # server_mac_address = "80:C8:AC:00:00:06" 
+    # server_mac_address = "68:3E:26:AE:0C:76" # 修改为实际的MAC地址
+    bluetooth_client(server_mac_address)
 
