@@ -80,11 +80,11 @@ def bluetooth_client(server_mac_address):
 
         # 发送 Alice 的公钥给服务器
         client_sock.send(alice.get_public_key_bytes())
-        print("已发送客户端公钥")
+        #print("已发送客户端公钥")
 
         # 接收服务器的公钥
         server_public_key_bytes = client_sock.recv(1024)
-        print("已接收服务器公钥")
+        #print("已接收服务器公钥")
 
         # 生成共享密钥
         shared_key = alice.derive_shared_key(server_public_key_bytes)
