@@ -92,11 +92,11 @@ def bluetooth_server():
 
         # 接收客户端公钥
         client_public_key_bytes = client_sock.recv(1024)
-        print("已接收客户端公钥")
+        #print("已接收客户端公钥")
 
         # 发送服务器公钥
         client_sock.send(bob.get_public_key_bytes())
-        print("已发送服务器公钥")
+        #print("已发送服务器公钥")
 
         # 生成共享密钥
         shared_key = bob.derive_shared_key(client_public_key_bytes)
